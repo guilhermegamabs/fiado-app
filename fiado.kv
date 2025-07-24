@@ -1,26 +1,61 @@
 <CadastroClienteScreen>:
-    orientation: 'vertical'
-    padding: 20
-    spacing: 10
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        spacing: 10
 
-    Label:
-        text: "Cadastro de Cliente"
-        font_size: 24
-        size_hint_y: None
-        height: 40
+        Label:
+            text: "Cadastro de Cliente"
+            font_size: 24
+            size_hint_y: None
+            height: 40
 
-    TextInput:
-        id: nome_input
-        hint_text: "Nome do cliente"
-        multiline: False
+        TextInput:
+            id: nome_input
+            hint_text: "Nome do cliente"
+            multiline: False
 
-    Button:
-        text: "Cadastrar"
-        size_hint_y: None
-        height: 50
-        on_press: root.cadastrar()
+        Button:
+            text: "Cadastrar"
+            size_hint_y: None
+            height: 50
+            on_press: root.cadastrar()
 
-    Label:
-        id: status_label
-        text: ""
-        color: (0, 1, 0, 1)
+        Button:
+            text: "Ver Lista de Clientes"
+            size_hint_y: None
+            height: 50
+            on_press: app.mostrar_lista()
+
+        Label:
+            id: status_label
+            text: ""
+            color: (0, 1, 0, 1)
+
+<ListaClientesScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        spacing: 10
+
+        Label:
+            text: "Lista de Clientes"
+            font_size: 24
+            size_hint_y: None
+            height: 40
+
+        RecycleView:
+            id: rv
+            viewclass: 'Label'
+            RecycleBoxLayout:
+                default_size: None, 40
+                default_size_hint: 1, None
+                size_hint_y: None
+                height: self.minimum_height
+                orientation: 'vertical'
+
+        Button:
+            text: "Voltar ao Cadastro"
+            size_hint_y: None
+            height: 50
+            on_press: app.mostrar_cadastro()

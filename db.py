@@ -46,3 +46,11 @@ def inserir_cliente(nome):
     cursor.execute("INSERT INTO clientes (nome) VALUES (?)", (nome,))
     conn.commit()
     conn.close()
+
+def buscar_clientes():
+    conn = conectar()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, nome FROM clientes ORDER BY nome")
+    resultados = cursor.fetchall()
+    conn.close()
+    return resultados  
