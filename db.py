@@ -54,3 +54,27 @@ def buscar_clientes():
     resultados = cursor.fetchall()
     conn.close()
     return resultados  
+
+def inserir_fiado(cliente_id, descricao, valor, data):
+    conn = conectar()
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO fiados (cliente_id, descricao, valor, data) VALUES (?, ?, ?, ?)",
+        (cliente_id, descricao, valor, data)
+    )
+    conn.commit()
+    conn.close()
+    
+def buscar_fiados():
+    conn = conectar()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT f.id, c.nome, f.descricao, f.valor, f.data
+        FROM fiados f
+        JOIN clientes c ON f.cliente_id = c.id
+        ORDER BY f.data DESC
+    """)
+    resultados = cursor.fetchall()
+    conn.close()
+    return resultados  # lista de tuplas (id, nome_cliente, descricao, valor, data)
+    

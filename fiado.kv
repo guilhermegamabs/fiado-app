@@ -27,6 +27,18 @@
             height: 50
             on_press: app.mostrar_lista()
 
+        Button:
+            text: "Registrar Fiado"
+            size_hint_y: None
+            height: 50
+            on_press: app.mostrar_registro_fiado()
+
+        Button:
+            text: "Ver Fiados"
+            size_hint_y: None
+            height: 50
+            on_press: app.mostrar_lista_fiados()
+
         Label:
             id: status_label
             text: ""
@@ -40,6 +52,80 @@
 
         Label:
             text: "Lista de Clientes"
+            font_size: 24
+            size_hint_y: None
+            height: 40
+
+        RecycleView:
+            id: rv
+            viewclass: 'Label'
+            RecycleBoxLayout:
+                default_size: None, 40
+                default_size_hint: 1, None
+                size_hint_y: None
+                height: self.minimum_height
+                orientation: 'vertical'
+
+        Button:
+            text: "Voltar ao Cadastro"
+            size_hint_y: None
+            height: 50
+            on_press: app.mostrar_cadastro()
+
+<RegistroFiadoScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        spacing: 10
+
+        Label:
+            text: "Registrar Fiado"
+            font_size: 24
+            size_hint_y: None
+            height: 40
+
+        Spinner:
+            id: spinner_cliente
+            text: "Selecione um cliente"
+            size_hint_y: None
+            height: 44
+
+        TextInput:
+            id: descricao
+            hint_text: "Descrição do produto"
+            multiline: False
+
+        TextInput:
+            id: valor
+            hint_text: "Valor (R$)"
+            multiline: False
+            input_filter: 'float'
+
+        Button:
+            text: "Registrar"
+            size_hint_y: None
+            height: 50
+            on_press: root.registrar()
+
+        Label:
+            id: status_label
+            text: ""
+            color: (0, 1, 0, 1)
+
+        Button:
+            text: "Voltar ao Cadastro"
+            size_hint_y: None
+            height: 50
+            on_press: app.mostrar_cadastro()
+
+<ListaFiadosScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        spacing: 10
+
+        Label:
+            text: "Lista de Fiados"
             font_size: 24
             size_hint_y: None
             height: 40
