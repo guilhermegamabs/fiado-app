@@ -3,119 +3,140 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.clock import Clock
 from datetime import datetime
 
-from db import criar_tabelas, inserir_cliente, buscar_clientes, inserir_fiado, buscar_fiados
-
+from db import (
+    criar_tabelas, inserir_cliente, buscar_clientes, inserir_fiado,
+    buscar_fiados_por_cliente, registrar_pagamento
+)
 
 class CadastroClienteScreen(Screen):
     def cadastrar(self):
-        nome = self.ids.nome_input.text
-        if nome.strip() != "":
+        nome = self.ids.nome_input.text.strip()
+        if nome:
             inserir_cliente(nome)
             self.ids.status_label.text = f"✅ Cliente '{nome}' cadastrado!"
             self.ids.nome_input.text = ""
-            app = App.get_running_app()
-            app.atualizar_lista_clientes()
+            App.get_running_app().atualizar_lista_clientes()
         else:
             self.ids.status_label.text = "❌ Nome é obrigatório."
 
-
 class ListaClientesScreen(Screen):
     def atualizar(self, clientes):
-        lista = [f"{cliente[1]}" for cliente in clientes]
-        self.ids.rv.data = [{'text': nome} for nome in lista]
+        self.ids.rv.data = [{'text': nome, 'on_press': lambda x=nome: self.abrir_fiados(x)} for _, nome in clientes]
 
+    def abrir_fiados(self, nome_cliente):
+        app = App.get_running_app()
+        app.mostrar_fiados_por_cliente(nome_cliente)
 
 class RegistroFiadoScreen(Screen):
-    def on_pre_enter(self, *args):
+    def on_pre_enter(self):
         Clock.schedule_once(self.atualizar_spinner)
 
     def atualizar_spinner(self, dt):
-        clientes = buscar_clientes()
-        clientes_nomes = [c[1] for c in clientes]
-        if clientes_nomes:
-            self.ids.spinner_cliente.values = clientes_nomes
-            self.ids.spinner_cliente.text = clientes_nomes[0]
-        else:
-            self.ids.spinner_cliente.values = []
-            self.ids.spinner_cliente.text = "Nenhum cliente cadastrado"
+        nomes = [c[1] for c in buscar_clientes()]
+        self.ids.spinner_cliente.values = nomes
+        self.ids.spinner_cliente.text = nomes[0] if nomes else "Nenhum cliente"
 
     def registrar(self):
-        cliente_nome = self.ids.spinner_cliente.text
+        nome = self.ids.spinner_cliente.text
         descricao = self.ids.descricao.text.strip()
-        valor_text = self.ids.valor.text.strip()
+        valor = self.ids.valor.text.strip()
 
-        if not cliente_nome or cliente_nome == "Nenhum cliente cadastrado":
+        if not nome or nome == "Nenhum cliente":
             self.ids.status_label.text = "❌ Selecione um cliente."
             return
-        if not descricao:
-            self.ids.status_label.text = "❌ Descrição é obrigatória."
+        if not descricao or not valor:
+            self.ids.status_label.text = "❌ Preencha todos os campos."
             return
         try:
-            valor = float(valor_text)
-            if valor <= 0:
+            valor_float = float(valor)
+            if valor_float <= 0:
                 raise ValueError
         except ValueError:
             self.ids.status_label.text = "❌ Valor inválido."
             return
 
-        clientes = buscar_clientes()
-        cliente_dict = {c[1]: c[0] for c in clientes}
-        cliente_id = cliente_dict.get(cliente_nome)
-
+        # CORREÇÃO AQUI: dicionário {nome: id}
+        clientes = {nome: id for id, nome in buscar_clientes()}
+        cliente_id = clientes.get(nome)
         if cliente_id is None:
             self.ids.status_label.text = "❌ Cliente não encontrado."
             return
 
         data = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-        inserir_fiado(cliente_id, descricao, valor, data)
-        self.ids.status_label.text = f"✅ Fiado registrado para {cliente_nome}!"
+        inserir_fiado(cliente_id, descricao, valor_float, data)
+        self.ids.status_label.text = "✅ Fiado registrado!"
         self.ids.descricao.text = ""
         self.ids.valor.text = ""
 
+class ListaFiadosPorClienteScreen(Screen):
+    nome_cliente = ""
 
-class ListaFiadosScreen(Screen):
-    def atualizar(self, fiados):
-        dados = [f"{f[1]} - {f[2]} - R$ {f[3]:.2f} - {f[4]}" for f in fiados]
-        self.ids.rv.data = [{'text': item} for item in dados]
+    def on_pre_enter(self):
+        self.atualizar_dados()
 
+    def atualizar_dados(self):
+        dados, total, ultima, valor_ultimo = buscar_fiados_por_cliente(self.nome_cliente)
+        self.ids.label_cliente.text = f"Fiados de: {self.nome_cliente}"
+        self.ids.label_total.text = f"Total Devido: R$ {total:.2f}"
+        if ultima:
+            self.ids.label_ultima.text = f"Último pagamento: {ultima} (R$ {valor_ultimo:.2f})"
+        else:
+            self.ids.label_ultima.text = "Último pagamento: --"
+        self.ids.rv.data = [{'text': f"{f[2]} - R$ {f[3]:.2f} - {f[4]}"} for f in dados]
+
+    def registrar_pagamento(self):
+        valor_pagamento = self.ids.input_pagamento.text.strip()
+        if not valor_pagamento:
+            return
+        try:
+            valor = float(valor_pagamento)
+            if valor <= 0:
+                self.ids.status_label.text = "❌ Valor inválido."
+                return
+        except ValueError:
+            self.ids.status_label.text = "❌ Valor inválido."
+            return
+
+        erro = registrar_pagamento(self.nome_cliente, valor)
+        if erro:
+            self.ids.status_label.text = erro
+        else:
+            self.ids.status_label.text = "✅ Pagamento registrado!"
+            self.ids.input_pagamento.text = ""
+            self.atualizar_dados()
 
 class FiadoApp(App):
     def build(self):
         criar_tabelas()
         self.sm = ScreenManager()
-
         self.cadastro_screen = CadastroClienteScreen(name='cadastro')
         self.lista_screen = ListaClientesScreen(name='lista')
         self.registro_fiado_screen = RegistroFiadoScreen(name='registro_fiado')
-        self.lista_fiados_screen = ListaFiadosScreen(name='lista_fiados')
+        self.fiados_cliente_screen = ListaFiadosPorClienteScreen(name='fiados_cliente')
 
         self.sm.add_widget(self.cadastro_screen)
         self.sm.add_widget(self.lista_screen)
         self.sm.add_widget(self.registro_fiado_screen)
-        self.sm.add_widget(self.lista_fiados_screen)
-
+        self.sm.add_widget(self.fiados_cliente_screen)
         return self.sm
 
     def atualizar_lista_clientes(self):
         clientes = buscar_clientes()
         self.lista_screen.atualizar(clientes)
 
+    def mostrar_cadastro(self):
+        self.sm.current = 'cadastro'
+
     def mostrar_lista(self):
         self.atualizar_lista_clientes()
         self.sm.current = 'lista'
 
-    def mostrar_cadastro(self):
-        self.sm.current = 'cadastro'
-
     def mostrar_registro_fiado(self):
         self.sm.current = 'registro_fiado'
 
-    def mostrar_lista_fiados(self):
-        fiados = buscar_fiados()
-        self.lista_fiados_screen.atualizar(fiados)
-        self.sm.current = 'lista_fiados'
-
+    def mostrar_fiados_por_cliente(self, nome):
+        self.fiados_cliente_screen.nome_cliente = nome
+        self.sm.current = 'fiados_cliente'
 
 if __name__ == '__main__':
     FiadoApp().run()

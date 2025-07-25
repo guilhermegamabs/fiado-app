@@ -4,12 +4,6 @@
         padding: 20
         spacing: 10
 
-        Label:
-            text: "Cadastro de Cliente"
-            font_size: 24
-            size_hint_y: None
-            height: 40
-
         TextInput:
             id: nome_input
             hint_text: "Nome do cliente"
@@ -17,32 +11,20 @@
 
         Button:
             text: "Cadastrar"
-            size_hint_y: None
-            height: 50
             on_press: root.cadastrar()
-
-        Button:
-            text: "Ver Lista de Clientes"
-            size_hint_y: None
-            height: 50
-            on_press: app.mostrar_lista()
-
-        Button:
-            text: "Registrar Fiado"
-            size_hint_y: None
-            height: 50
-            on_press: app.mostrar_registro_fiado()
-
-        Button:
-            text: "Ver Fiados"
-            size_hint_y: None
-            height: 50
-            on_press: app.mostrar_lista_fiados()
 
         Label:
             id: status_label
             text: ""
-            color: (0, 1, 0, 1)
+            color: 1, 1, 1, 1
+
+        Button:
+            text: "Ir para Lista"
+            on_press: app.mostrar_lista()
+
+        Button:
+            text: "Registrar Fiado"
+            on_press: app.mostrar_registro_fiado()
 
 <ListaClientesScreen>:
     BoxLayout:
@@ -51,25 +33,22 @@
         spacing: 10
 
         Label:
-            text: "Lista de Clientes"
+            text: "Clientes Cadastrados"
             font_size: 24
-            size_hint_y: None
-            height: 40
 
         RecycleView:
             id: rv
-            viewclass: 'Label'
+            viewclass: 'Button'
+
             RecycleBoxLayout:
-                default_size: None, 40
+                default_size: None, 50
                 default_size_hint: 1, None
                 size_hint_y: None
                 height: self.minimum_height
                 orientation: 'vertical'
 
         Button:
-            text: "Voltar ao Cadastro"
-            size_hint_y: None
-            height: 50
+            text: "Voltar"
             on_press: app.mostrar_cadastro()
 
 <RegistroFiadoScreen>:
@@ -78,61 +57,67 @@
         padding: 20
         spacing: 10
 
-        Label:
-            text: "Registrar Fiado"
-            font_size: 24
-            size_hint_y: None
-            height: 40
-
         Spinner:
             id: spinner_cliente
-            text: "Selecione um cliente"
-            size_hint_y: None
-            height: 44
+            text: "Selecione o cliente"
+            values: []
 
         TextInput:
             id: descricao
-            hint_text: "Descrição do produto"
+            hint_text: "Descrição do fiado"
             multiline: False
 
         TextInput:
             id: valor
-            hint_text: "Valor (R$)"
-            multiline: False
+            hint_text: "Valor"
             input_filter: 'float'
+            multiline: False
 
         Button:
             text: "Registrar"
-            size_hint_y: None
-            height: 50
             on_press: root.registrar()
 
         Label:
             id: status_label
             text: ""
-            color: (0, 1, 0, 1)
+            color: 1, 1, 1, 1
 
         Button:
-            text: "Voltar ao Cadastro"
-            size_hint_y: None
-            height: 50
+            text: "Voltar"
             on_press: app.mostrar_cadastro()
 
-<ListaFiadosScreen>:
+<ListaFiadosPorClienteScreen>:
     BoxLayout:
         orientation: 'vertical'
         padding: 20
         spacing: 10
 
         Label:
-            text: "Lista de Fiados"
+            id: label_cliente
+            text: "Fiados de: "
             font_size: 24
+
+        Label:
+            id: label_total
+            text: "Total Devido: R$ 0.00"
+            font_size: 18
+
+        Label:
+            id: label_ultima
+            text: "Último pagamento: --"
+            font_size: 16
+
+        Label:
+            id: status_label       # <=== adicione este label para mensagens
+            text: ""
             size_hint_y: None
-            height: 40
+            height: 30
+            color: 0, 1, 0, 1  # verde, por exemplo
 
         RecycleView:
             id: rv
             viewclass: 'Label'
+
             RecycleBoxLayout:
                 default_size: None, 40
                 default_size_hint: 1, None
@@ -140,8 +125,25 @@
                 height: self.minimum_height
                 orientation: 'vertical'
 
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: 50
+            spacing: 10
+
+            TextInput:
+                id: input_pagamento
+                hint_text: "Valor do pagamento"
+                input_filter: 'float'
+                multiline: False
+
+            Button:
+                text: "Pagar"
+                on_press: root.registrar_pagamento()
+
         Button:
             text: "Voltar ao Cadastro"
             size_hint_y: None
             height: 50
             on_press: app.mostrar_cadastro()
+
